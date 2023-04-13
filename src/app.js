@@ -14,7 +14,7 @@ app.use(express.json())
 app.use('/api',usersRoutes)
 app.use('/api',centersRoutes)
 app.use('/api',registersRoutes)
-/* app.use('/api',computersRoutes) */
+app.use('/api',computersRoutes)
 
 app.use((req, res, next) => {
     res.status(404).json({ messaje: 'ENDPOINT NOT FOUND' })

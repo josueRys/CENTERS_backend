@@ -110,12 +110,12 @@ export const deleteUser = async (req, res) => {
 export const readUsers =  async (req, res) => {
     try {
         const page = parseInt(req.query.page)
-        const pageSize = 3
+        const pageSize = 10
 
         const startIndex = (page - 1) * pageSize;
         const endIndex = startIndex + pageSize;
 
-        const sql = `
+        const sqlA = `
                 SELECT DISTINCT u.*
                 FROM users u
                 JOIN users_centers uc ON u.id = uc.id_user
@@ -126,7 +126,7 @@ export const readUsers =  async (req, res) => {
                 ) ORDER BY username DESC LIMIT ${startIndex}, ${pageSize}
         `;
 
-        const sql2 = `
+        const sql2A = `
                 SELECT COUNT(DISTINCT u.id) as totalCount
                 FROM users u
                 JOIN users_centers uc ON u.id = uc.id_user
@@ -136,6 +136,25 @@ export const readUsers =  async (req, res) => {
                 WHERE uc2.id_user = ${session.userId } AND uc2.rol = 'admin'
                 )
         `;
+
+        const sqlR = `
+                SELECT DISTINCT u.*
+                FROM users u
+                ORDER BY username DESC LIMIT ${startIndex}, ${pageSize}
+        `;
+
+        const sql2R = `
+                SELECT COUNT(DISTINCT u.id) as totalCount
+                FROM users u
+        `;
+
+        let sql = sqlA
+        let sql2 = sql2A
+
+        if (session.root === true){
+            sql = sqlR
+            sql2 = sql2R
+        }
 
         let [ totalCount ] = await pool.query(sql2)
 
