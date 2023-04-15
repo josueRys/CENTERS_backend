@@ -123,7 +123,7 @@ export const readUsers =  async (req, res) => {
                 SELECT uc2.id_center
                 FROM users_centers uc2
                 WHERE uc2.id_user = ${ session.userId } AND uc2.rol = 'admin'
-                ) ORDER BY username DESC LIMIT ${startIndex}, ${pageSize}
+                ) AND NOT u.id = ${session.userId} ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;
 
         const sql2A = `
@@ -134,18 +134,18 @@ export const readUsers =  async (req, res) => {
                 SELECT uc2.id_center
                 FROM users_centers uc2
                 WHERE uc2.id_user = ${session.userId } AND uc2.rol = 'admin'
-                )
+                ) AND NOT u.id = ${session.userId}
         `;
 
         const sqlR = `
                 SELECT DISTINCT u.*
-                FROM users u
-                ORDER BY username DESC LIMIT ${startIndex}, ${pageSize}
+                FROM users u WHERE NOT u.id = ${session.userId}
+                ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;
 
         const sql2R = `
                 SELECT COUNT(DISTINCT u.id) as totalCount
-                FROM users u
+                FROM users u WHERE NOT u.id = ${session.userId}
         `;
 
         let sql = sqlA
