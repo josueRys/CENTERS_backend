@@ -192,7 +192,7 @@ export const readUsers =  async (req, res) => {
         }
 
         if(rows.length <= 0){
-            return res.status(400).json({ messaje: 'NO DATA' })
+            return res.sendStatus(204)
         }
 
         res.json({

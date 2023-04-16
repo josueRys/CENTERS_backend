@@ -143,7 +143,7 @@ export const readCenters = async (req, res) => {
 
         const [ rows ] = await pool.query(sql)
         if(rows.length <= 0){
-            return res.sendStatus(404)
+            return res.sendStatus(204)
         }
 
         let [ totalCount ] = await pool.query(sql2)
