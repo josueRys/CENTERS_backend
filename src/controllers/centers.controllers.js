@@ -31,7 +31,26 @@ export const createCenter = async (req, res) => {
 
 export const readCenter = async (req, res) => {
     try {
-        const [ rows ] = await pool.query('SELECT *FROM centers WHERE id = ?', [req.params.id])
+        const sqlA = `
+            SELECT c.*
+            FROM centers c
+            JOIN users_centers uc ON c.id = uc.id_center
+            WHERE uc.id_user = ${ session.userId } AND uc.rol = 'admin' AND c.id = ${req.params.id}
+        `;
+
+        const sqlR = `
+            SELECT c.*
+            FROM centers c
+            WHERE c.id = ${req.params.id}
+        `;
+
+        let sql = sqlA
+
+        if(session.root === true){
+            sql = sqlR
+        }
+
+        const [ rows ] = await pool.query(sql)
 
         if(rows.length <= 0){
             return res.status(404).json({ messaje: 'CENTER NOT FOUND' })
