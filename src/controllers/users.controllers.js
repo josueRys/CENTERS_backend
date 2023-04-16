@@ -51,7 +51,7 @@ export const createUser = async (req, res) => {
 
 export const readUser = async (req, res) => {
     try {
-        const sql = `
+        const sqlA = `
             SELECT u.*
             FROM users u
             JOIN users_centers uc ON u.id = uc.id_user
@@ -61,6 +61,19 @@ export const readUser = async (req, res) => {
             WHERE uc2.id_user = ${ session.userId } AND uc2.rol = 'admin'
             ) AND u.id = ${req.params.id}
         `;
+
+        const sqlR = `
+            SELECT u.*
+            FROM users u
+            WHERE u.id = ${req.params.id}
+        `;
+
+        let sql = sqlA
+
+        if(session.root === true){
+            sql = sqlR
+        }
+
         const [rows] = await pool.query(sql)
 
         if (rows.length <= 0){
