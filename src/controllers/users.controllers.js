@@ -122,6 +122,21 @@ export const deleteUser = async (req, res) => {
 
 export const readUsers =  async (req, res) => {
     try {
+        // consulta de usuarios del centro donde el usuario(admin y root) logueado sea admin
+
+        const sqlARs = `
+                SELECT u.id, u.username
+                FROM users u
+                JOIN users_centers uc ON u.id = uc.id_user
+                WHERE uc.id_center = ? ORDER BY id DESC
+        `;
+
+        if(req.query.idCenter){
+            const idCenter = parseInt(req.query.idCenter)
+            const [rows]  = await pool.query(sqlARs,[idCenter])
+            return res.status(200).json(rows)
+        }
+
         const page = parseInt(req.query.page)
         const pageSize = 10
 

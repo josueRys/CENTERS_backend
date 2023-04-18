@@ -2,14 +2,6 @@ import { findUser } from "../database/checkUser.js";
 import session from "express-session";
 import { pool } from "../db.js";
 
-/* let user = {
-    id: null,
-    name: 'user1',
-    surnames: 'lastname',
-    phone_number: null
-} */
-
-
 // CRUD
 
 export const createCenter = async (req, res) => {
@@ -97,6 +89,32 @@ export const deleteCenter = async (req, res) => {
 
 export const readCenters = async (req, res) => {
     try {
+
+        // consulta de centros en donde el usuario logueado sea admin
+
+        const sqlAs = `
+                SELECT c.id,c.name
+                FROM centers c
+                JOIN users_centers uc ON c.id = uc.id_center
+                WHERE uc.id_user = ${ session.userId } AND uc.rol = 'admin' ORDER BY id DESC
+        `;
+
+        const sqlRs = `
+                SELECT c.id,c.name
+                FROM centers c ORDER BY id DESC
+        `;
+
+        if (session.root === true && req.query.type === 'select' ){
+            const [ rows ] = await pool.query(sqlRs)
+            return res.status(200).json(rows)
+        }
+
+
+        if (req.query.type === 'select'){
+            const [ rows ] = await pool.query(sqlAs)
+            return res.status(200).json(rows)
+        }
+
         let page = parseInt(req.query.page)
         let pageSize = 10
 
@@ -119,6 +137,7 @@ export const readCenters = async (req, res) => {
                 WHERE uc.id_user = ${ session.userId }
         `;
 
+
         // consulta para root
 
         const sqlR = `
@@ -131,7 +150,6 @@ export const readCenters = async (req, res) => {
                 SELECT COUNT(c.id) as totalCount
                 FROM centers c                
         `;
-
 
         let sql = sqlAC
         let sql2 = sql2AC
