@@ -99,6 +99,19 @@ export const deleteComputer = async (req, res) => {
 
 export const readComputers = async (req, res) => {
     try {
+
+        const sqlARs = `
+                SELECT cmp.id, cmp.model
+                FROM computers cmp
+                WHERE id_center = ? ORDER BY id DESC
+        `;
+
+        if(req.query.idCenter){
+            const idCenter = parseInt(req.query.idCenter)
+            const [rows] = await pool.query(sqlARs,[ idCenter ])
+            return res.status(200).json(rows)
+        }
+
         let page = parseInt(req.query.page)
         let pageSize = 10
 
