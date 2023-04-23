@@ -1,13 +1,6 @@
 import { findUser } from "../database/checkUser.js"
 import { pool } from "../db.js"
 import session from "express-session"
-
-/* let user = {
-    id: null,
-    name: 'user1',
-    surnames: 'lastname',
-    phone_number: null
-} */
     // CRUD
 
 export const login = async ( req, res ) => {
