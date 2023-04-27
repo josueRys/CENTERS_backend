@@ -118,7 +118,7 @@ export const readUsers =  async (req, res) => {
         // consulta de usuarios del centro donde el usuario(admin y root) logueado sea admin
 
         const sqlARs = `
-                SELECT u.id, u.username
+                SELECT u.id, u.username, u.status
                 FROM users u
                 JOIN users_centers uc ON u.id = uc.id_user
                 WHERE uc.id_center = ? ORDER BY id DESC
@@ -137,7 +137,7 @@ export const readUsers =  async (req, res) => {
         const endIndex = startIndex + pageSize;
 
         const sqlA = `
-                SELECT DISTINCT u.*
+                SELECT DISTINCT u.id, u.username, u.password, u.phone_number
                 FROM users u
                 JOIN users_centers uc ON u.id = uc.id_user
                 WHERE uc.id_center IN (
@@ -159,7 +159,7 @@ export const readUsers =  async (req, res) => {
         `;
 
         const sqlR = `
-                SELECT DISTINCT u.*
+                SELECT DISTINCT u.id, u.username, u.password, u.phone_number
                 FROM users u WHERE NOT u.id = ${session.userId}
                 ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;

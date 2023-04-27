@@ -71,7 +71,7 @@ export const updateComputer = async (req, res) => {
         const [ result ] = await pool.query('UPDATE computers SET model = IFNULL(?,model), company = IFNULL(?,company),type = IFNULL(?,type), id_center = IFNULL(?,id_center) WHERE id = ? ',[model, company, type, id_center, id])
 
         if(result.affectedRows <= 0){
-            return res.status(400).json({ messaje: 'COmPUTER NOT FOUND' })
+            return res.status(400).json({ messaje: 'COMPUTER NOT FOUND' })
         }
 
         const [ rows ] = await pool.query('SELECT *FROM computers WHERE id = ?',[id])
@@ -101,7 +101,7 @@ export const readComputers = async (req, res) => {
     try {
 
         const sqlARs = `
-                SELECT cmp.id, cmp.model
+                SELECT cmp.id, cmp.model, cmp.status
                 FROM computers cmp
                 WHERE id_center = ? ORDER BY id DESC
         `;
