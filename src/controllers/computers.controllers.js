@@ -27,13 +27,16 @@ export const createComputer = async (req, res) => {
 }
 
 export const readComputer = async (req, res) => {
+
+    const sessionId = parseInt(req.cookies.sessionId)
+
     try {
         const sqlA = `
             SELECT cmp.*
             FROM computers cmp
             JOIN centers c ON cmp.id_center = c.id
             JOIN users_centers uc ON uc.id_center = c.id
-            WHERE uc.id_user = ${ session.userId }
+            WHERE uc.id_user = ${ sessionId }
             AND uc.rol = 'admin'
             AND cmp.id = ${req.params.id} 
         `;
@@ -46,7 +49,7 @@ export const readComputer = async (req, res) => {
 
         let sql = sqlA
 
-        if(session.root === true){
+        if(sessionId === 41){
             sql = sqlR
         }
 
@@ -98,6 +101,9 @@ export const deleteComputer = async (req, res) => {
 }
 
 export const readComputers = async (req, res) => {
+    
+    const sessionId = parseInt(req.cookies.sessionId)
+
     try {
 
         // 'idCenter' sin 'page'
@@ -125,7 +131,7 @@ export const readComputers = async (req, res) => {
 
         if( req.query.page && req.query.idCenter ){
             consulta = `AND cmp.id_center = ${idCenter}`
-            if (session.root === true){
+            if (sessionId === 41){
                 consulta = `WHERE cmp.id_center = ${idCenter}`
             }
         }
@@ -137,7 +143,7 @@ export const readComputers = async (req, res) => {
                 WHERE c.id IN (
                     SELECT uc.id_center
                     FROM users_centers uc
-                    WHERE uc.id_user = ${ session.userId } AND uc.rol = 'admin'
+                    WHERE uc.id_user = ${ sessionId } AND uc.rol = 'admin'
                 ) ${consulta} ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;
 
@@ -148,7 +154,7 @@ export const readComputers = async (req, res) => {
                 WHERE c.id IN (
                     SELECT uc.id_center
                     FROM users_centers uc
-                    WHERE uc.id_user = ${ session.userId } AND uc.rol = 'admin'
+                    WHERE uc.id_user = ${ sessionId } AND uc.rol = 'admin'
                 ) ${consulta}
         `;
 
@@ -167,7 +173,7 @@ export const readComputers = async (req, res) => {
         let sql = sqlA
         let sql2 = sqlA2
 
-        if (session.root === true){
+        if (sessionId === 41){
             sql = sqlR
             sql2 = sqlR2
         }

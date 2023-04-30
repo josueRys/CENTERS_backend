@@ -5,21 +5,22 @@ import session from "express-session"
 
 export const login = async ( req, res ) => {
     try {
-        const { username, password } = req.body
-        const data = await findUser(username, password)
 
-        if ( data === false ){
-            return res.status(404).json({ messaje: 'USER NOT FOUND' })
-        } else {
-            session.userId = data.id
-            session.root = false
-            if(data.username == 'Josue' && data.password == 'rysrvr'){
-                session.root = true
-            }
+        const { username, password } = req.body
+        const [ rows ] = await pool.query('SELECT * FROM users WHERE username = ? AND password = ? ',[username,password])
+
+        if (rows.length > 0){
+            const sessionId = rows[0].id
+
+            res.cookie('sessionId',sessionId,{
+                httpOnly: true,
+                maxAge: 86400000
+            })
+            res.sendStatus(200)
         }
-        res.status(200).json({idUser: data.id})
+
     } catch (error) {
-        res.status(404).json({ messaje: 'USER NOT FOUND' })
+        return res.status(500).json({ messaje: 'SOMETHING WENT WRONG' })
     }
 }
 
@@ -43,6 +44,9 @@ export const createUser = async (req, res) => {
 }
 
 export const readUser = async (req, res) => {
+
+    const sessionId = parseInt(req.cookies.sessionId)
+
     try {
         const sqlA = `
             SELECT u.*
@@ -51,7 +55,7 @@ export const readUser = async (req, res) => {
             WHERE uc.id_center IN (
             SELECT uc2.id_center
             FROM users_centers uc2
-            WHERE uc2.id_user = ${ session.userId } AND uc2.rol = 'admin'
+            WHERE uc2.id_user = ${ sessionId } AND uc2.rol = 'admin'
             ) AND u.id = ${req.params.id}
         `;
 
@@ -63,7 +67,7 @@ export const readUser = async (req, res) => {
 
         let sql = sqlA
 
-        if(session.root === true){
+        if(sessionId === 41){
             sql = sqlR
         }
 
@@ -114,6 +118,9 @@ export const deleteUser = async (req, res) => {
 }
 
 export const readUsers =  async (req, res) => {
+
+    const sessionId = parseInt(req.cookies.sessionId)
+
     try {
 
         // 'idCenter' sin 'page'
@@ -143,7 +150,7 @@ export const readUsers =  async (req, res) => {
         
         if ( req.query.page && req.query.idCenter ){        // 'idCenter' con 'page'
             consulta = `AND uc.id_center = ${idCenter}`;
-            if (session.root === true){
+            if (sessionId === 41){
                 consulta = `AND uc.id_center = ${idCenter}`;
                 consulta2 = `JOIN users_centers uc ON u.id = uc.id_user`
             }
@@ -156,8 +163,8 @@ export const readUsers =  async (req, res) => {
                 WHERE uc.id_center IN (
                 SELECT uc2.id_center
                 FROM users_centers uc2
-                WHERE uc2.id_user = ${session.userId } AND uc2.rol = 'admin'
-                ) AND NOT u.id = ${session.userId } ${consulta} ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
+                WHERE uc2.id_user = ${sessionId } AND uc2.rol = 'admin'
+                ) AND NOT u.id = ${sessionId } ${consulta} ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;
 
         const sql2A = `
@@ -167,15 +174,15 @@ export const readUsers =  async (req, res) => {
                 WHERE uc.id_center IN (
                 SELECT uc2.id_center
                 FROM users_centers uc2
-                WHERE uc2.id_user = ${session.userId } AND uc2.rol = 'admin'
-                ) AND NOT u.id = ${session.userId} ${consulta}
+                WHERE uc2.id_user = ${sessionId } AND uc2.rol = 'admin'
+                ) AND NOT u.id = ${sessionId} ${consulta}
         `;
 
         const sqlR = `
                 SELECT DISTINCT u.id, u.username, u.password, u.phone_number
                 FROM users u
                 ${consulta2}
-                WHERE NOT u.id = ${session.userId} ${consulta}
+                WHERE NOT u.id = ${sessionId} ${consulta}
                 ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;
 
@@ -183,13 +190,13 @@ export const readUsers =  async (req, res) => {
                 SELECT COUNT(DISTINCT u.id) as totalCount
                 FROM users u 
                 ${consulta2}
-                WHERE NOT u.id = ${session.userId} ${consulta}
+                WHERE NOT u.id = ${sessionId} ${consulta}
         `;
 
         let sql = sqlA
         let sql2 = sql2A
 
-        if (session.root === true){
+        if (sessionId === 41){
             sql = sqlR
             sql2 = sql2R
         }

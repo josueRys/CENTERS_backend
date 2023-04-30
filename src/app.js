@@ -9,8 +9,11 @@ import computersRoutes from "./routes/computers.routes.js"
 const app = express()
 
 app.use(cookieParser())
-app.use(cors())
 app.use(express.json())
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}))
 
 app.use('/api',usersRoutes)
 app.use('/api',centersRoutes)

@@ -22,12 +22,15 @@ export const createCenter = async (req, res) => {
 }
 
 export const readCenter = async (req, res) => {
+
+    const sessionId = parseInt(req.cookies.sessionId)
+
     try {
         const sqlA = `
             SELECT c.*
             FROM centers c
             JOIN users_centers uc ON c.id = uc.id_center
-            WHERE uc.id_user = ${ session.userId } AND uc.rol = 'admin' AND c.id = ${req.params.id}
+            WHERE uc.id_user = ${ sessionId } AND uc.rol = 'admin' AND c.id = ${req.params.id}
         `;
 
         const sqlR = `
@@ -38,7 +41,7 @@ export const readCenter = async (req, res) => {
 
         let sql = sqlA
 
-        if(session.root === true){
+        if(sessionId === 41){
             sql = sqlR
         }
 
@@ -88,6 +91,10 @@ export const deleteCenter = async (req, res) => {
 }
 
 export const readCenters = async (req, res) => {
+    // extraemos el valor de la cookie
+    
+    const sessionId = parseInt(req.cookies.sessionId)
+    
     try {
 
         // consulta de centros en donde el usuario logueado sea admin
@@ -96,7 +103,7 @@ export const readCenters = async (req, res) => {
                 SELECT c.id,c.name
                 FROM centers c
                 JOIN users_centers uc ON c.id = uc.id_center
-                WHERE uc.id_user = ${ session.userId } AND uc.rol = 'admin' ORDER BY id DESC
+                WHERE uc.id_user = ${ sessionId } AND uc.rol = 'admin' ORDER BY id DESC
         `;
 
         const sqlRs = `
@@ -104,7 +111,7 @@ export const readCenters = async (req, res) => {
                 FROM centers c ORDER BY id DESC
         `;
 
-        if (session.root === true && req.query.type === 'select' ){
+        if (sessionId === 41 && req.query.type === 'select' ){
             const [ rows ] = await pool.query(sqlRs)
             return res.status(200).json(rows)
         }
@@ -127,16 +134,15 @@ export const readCenters = async (req, res) => {
                 SELECT c.id, c.name, c.address, c.phone_number
                 FROM centers c
                 JOIN users_centers uc ON c.id = uc.id_center
-                WHERE uc.id_user = ${ session.userId } ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
+                WHERE uc.id_user = ${ sessionId } ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;
 
         const sql2AC = `
                 SELECT COUNT(c.id) as totalCount
                 FROM centers c
                 JOIN users_centers uc ON c.id = uc.id_center
-                WHERE uc.id_user = ${ session.userId }
+                WHERE uc.id_user = ${ sessionId }
         `;
-
 
         // consulta para root
 
@@ -154,7 +160,7 @@ export const readCenters = async (req, res) => {
         let sql = sqlAC
         let sql2 = sql2AC
 
-        if (session.root === true){
+        if (sessionId === 41){
             sql = sqlR
             sql2 = sql2R
         }

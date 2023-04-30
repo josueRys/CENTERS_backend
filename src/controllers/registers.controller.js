@@ -85,6 +85,9 @@ export const deleteRegister = async (req, res) => {
 }
 
 export const readRegisters = async (req, res) => {
+
+    const sessionId = parseInt(req.cookies.sessionId)
+
     try {            
         let page = parseInt(req.query.page)
         const idCenter = parseInt(req.query.idCenter)
@@ -106,8 +109,8 @@ export const readRegisters = async (req, res) => {
                 JOIN centers c ON r.id_center = c.id
                 JOIN users u ON r.id_user = u.id
                 JOIN users_centers uc ON r.id_center = uc.id_center
-                WHERE u.id = ${session.userId}
-                OR (uc.rol = 'admin' AND uc.id_user = ${session.userId} )
+                WHERE u.id = ${sessionId}
+                OR (uc.rol = 'admin' AND uc.id_user = ${sessionId} )
                 ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;
 
@@ -118,8 +121,8 @@ export const readRegisters = async (req, res) => {
                 JOIN centers c ON r.id_center = c.id
                 JOIN users u ON r.id_user = u.id
                 JOIN users_centers uc ON r.id_center = uc.id_center
-                WHERE u.id = ${session.userId}
-                OR (uc.rol = 'admin' AND uc.id_user = ${session.userId} )
+                WHERE u.id = ${sessionId}
+                OR (uc.rol = 'admin' AND uc.id_user = ${sessionId} )
         `;
 
         const sqlR = `
@@ -144,7 +147,7 @@ export const readRegisters = async (req, res) => {
         let sql = sqlAC
         let sql2 = sqlAC2
 
-        if(session.root === true){
+        if(sessionId === 41){
             sql = sqlR
             sql2 = sqlR2
         }
