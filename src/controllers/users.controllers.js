@@ -17,7 +17,7 @@ export const login = async ( req, res ) => {
                 session.root = true
             }
         }
-        res.sendStatus(200)
+        res.status(200).json({idUser: data.id})
     } catch (error) {
         res.status(404).json({ messaje: 'USER NOT FOUND' })
     }
@@ -115,8 +115,8 @@ export const deleteUser = async (req, res) => {
 
 export const readUsers =  async (req, res) => {
     try {
-        // consulta de usuarios del centro donde el usuario(admin y root) logueado sea admin
 
+        // 'idCenter' sin 'page'
         const sqlARs = `
                 SELECT u.id, u.username, u.status
                 FROM users u
@@ -124,17 +124,30 @@ export const readUsers =  async (req, res) => {
                 WHERE uc.id_center = ? ORDER BY id DESC
         `;
 
-        if(req.query.idCenter){
+        if(req.query.idCenter && !req.query.page ){
             const idCenter = parseInt(req.query.idCenter)
             const [rows]  = await pool.query(sqlARs,[idCenter])
             return res.status(200).json(rows)
         }
 
         const page = parseInt(req.query.page)
-        const pageSize = 10
+        const idCenter = parseInt(req.query.idCenter)
+        
+        let pageSize = 10
 
         const startIndex = (page - 1) * pageSize;
         const endIndex = startIndex + pageSize;
+
+        let consulta = ''
+        let consulta2 = ''        
+        
+        if ( req.query.page && req.query.idCenter ){        // 'idCenter' con 'page'
+            consulta = `AND uc.id_center = ${idCenter}`;
+            if (session.root === true){
+                consulta = `AND uc.id_center = ${idCenter}`;
+                consulta2 = `JOIN users_centers uc ON u.id = uc.id_user`
+            }
+        }       
 
         const sqlA = `
                 SELECT DISTINCT u.id, u.username, u.password, u.phone_number
@@ -143,8 +156,8 @@ export const readUsers =  async (req, res) => {
                 WHERE uc.id_center IN (
                 SELECT uc2.id_center
                 FROM users_centers uc2
-                WHERE uc2.id_user = ${ session.userId } AND uc2.rol = 'admin'
-                ) AND NOT u.id = ${session.userId} ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
+                WHERE uc2.id_user = ${session.userId } AND uc2.rol = 'admin'
+                ) AND NOT u.id = ${session.userId } ${consulta} ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;
 
         const sql2A = `
@@ -155,18 +168,22 @@ export const readUsers =  async (req, res) => {
                 SELECT uc2.id_center
                 FROM users_centers uc2
                 WHERE uc2.id_user = ${session.userId } AND uc2.rol = 'admin'
-                ) AND NOT u.id = ${session.userId}
+                ) AND NOT u.id = ${session.userId} ${consulta}
         `;
 
         const sqlR = `
                 SELECT DISTINCT u.id, u.username, u.password, u.phone_number
-                FROM users u WHERE NOT u.id = ${session.userId}
+                FROM users u
+                ${consulta2}
+                WHERE NOT u.id = ${session.userId} ${consulta}
                 ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;
 
         const sql2R = `
                 SELECT COUNT(DISTINCT u.id) as totalCount
-                FROM users u WHERE NOT u.id = ${session.userId}
+                FROM users u 
+                ${consulta2}
+                WHERE NOT u.id = ${session.userId} ${consulta}
         `;
 
         let sql = sqlA

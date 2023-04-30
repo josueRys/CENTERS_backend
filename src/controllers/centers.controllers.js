@@ -124,7 +124,7 @@ export const readCenters = async (req, res) => {
         // consulta para admin y client
 
         const sqlAC = `
-                SELECT c.*
+                SELECT c.id, c.name, c.address, c.phone_number
                 FROM centers c
                 JOIN users_centers uc ON c.id = uc.id_center
                 WHERE uc.id_user = ${ session.userId } ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
@@ -141,7 +141,7 @@ export const readCenters = async (req, res) => {
         // consulta para root
 
         const sqlR = `
-                SELECT c.*
+                SELECT c.id, c.name, c.address, c.phone_number
                 FROM centers c
                 ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;

@@ -100,23 +100,35 @@ export const deleteComputer = async (req, res) => {
 export const readComputers = async (req, res) => {
     try {
 
+        // 'idCenter' sin 'page'
         const sqlARs = `
                 SELECT cmp.id, cmp.model, cmp.status
                 FROM computers cmp
                 WHERE id_center = ? ORDER BY id DESC
         `;
 
-        if(req.query.idCenter){
+        if(req.query.idCenter && !req.query.page ){
             const idCenter = parseInt(req.query.idCenter)
             const [rows] = await pool.query(sqlARs,[ idCenter ])
             return res.status(200).json(rows)
         }
 
-        let page = parseInt(req.query.page)
+        const page = parseInt(req.query.page)
+        const idCenter = parseInt(req.query.idCenter)
+
         let pageSize = 10
 
         const startIndex = (page - 1) * pageSize;
         const endIndex = startIndex + pageSize;
+
+        let consulta = ''
+
+        if( req.query.page && req.query.idCenter ){
+            consulta = `AND cmp.id_center = ${idCenter}`
+            if (session.root === true){
+                consulta = `WHERE cmp.id_center = ${idCenter}`
+            }
+        }
 
         const sqlA = `
                 SELECT cmp.id, cmp.model, cmp.company, cmp.type
@@ -126,7 +138,7 @@ export const readComputers = async (req, res) => {
                     SELECT uc.id_center
                     FROM users_centers uc
                     WHERE uc.id_user = ${ session.userId } AND uc.rol = 'admin'
-                ) ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
+                ) ${consulta} ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;
 
         const sqlA2 = `
@@ -137,18 +149,19 @@ export const readComputers = async (req, res) => {
                     SELECT uc.id_center
                     FROM users_centers uc
                     WHERE uc.id_user = ${ session.userId } AND uc.rol = 'admin'
-                )
+                ) ${consulta}
         `;
 
         const sqlR = `
                 SELECT cmp.id, cmp.model, cmp.company, cmp.type
                 FROM computers cmp
+                ${consulta}
                 ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;
 
         const sqlR2 = `
                 SELECT COUNT(cmp.id) as totalCount
-                FROM computers cmp
+                FROM computers cmp ${consulta}
         `;
 
         let sql = sqlA

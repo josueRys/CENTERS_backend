@@ -87,10 +87,17 @@ export const deleteRegister = async (req, res) => {
 export const readRegisters = async (req, res) => {
     try {            
         let page = parseInt(req.query.page)
+        const idCenter = parseInt(req.query.idCenter)
         let pageSize = 10
 
         const startIndex = (page - 1) * pageSize;
         const endIndex = startIndex + pageSize;
+
+        let consulta = ''
+
+        if(req.query.idCenter){
+            consulta = `WHERE c.id = ${idCenter}`;
+        }
 
         const sqlAC = `
                 SELECT DISTINCT r.id, r.date, r.start_time, r.leave_time, cmp.model as computer, u.username, c.name as center
@@ -121,6 +128,7 @@ export const readRegisters = async (req, res) => {
                 JOIN computers cmp ON r.id_computer = cmp.id
                 JOIN centers c ON r.id_center = c.id
                 JOIN users u ON r.id_user = u.id
+                ${consulta}
                 ORDER BY id DESC LIMIT ${startIndex}, ${pageSize}
         `;
 
@@ -130,6 +138,7 @@ export const readRegisters = async (req, res) => {
                 JOIN computers cmp ON r.id_computer = cmp.id
                 JOIN centers c ON r.id_center = c.id
                 JOIN users u ON r.id_user = u.id
+                ${consulta}
         `;
 
         let sql = sqlAC
