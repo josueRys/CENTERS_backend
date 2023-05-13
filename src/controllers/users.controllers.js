@@ -7,7 +7,7 @@ export const login = async ( req, res ) => {
     try {
 
         const { username, password } = req.body
-        const [ rows ] = await pool.query('SELECT * FROM users WHERE username = ? AND password = ? ',[username,password])
+        const [ rows ] = await pool.query('SELECT id, username, status FROM users WHERE username = ? AND password = ? ',[username,password])
 
         if (rows.length > 0){
             const sessionId = rows[0].id
@@ -16,9 +16,18 @@ export const login = async ( req, res ) => {
                 httpOnly: true,
                 maxAge: 86400000
             })
-            res.sendStatus(200)
+            res.status(200).json({ data: rows })
         }
 
+    } catch (error) {
+        return res.status(500).json({ messaje: 'SOMETHING WENT WRONG' })
+    }
+}
+
+export const logout = async ( req, res ) => {
+    try {
+        res.clearCookie('sessionId')
+        res.sendStatus(200)
     } catch (error) {
         return res.status(500).json({ messaje: 'SOMETHING WENT WRONG' })
     }

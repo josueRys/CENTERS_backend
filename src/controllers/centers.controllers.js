@@ -48,7 +48,7 @@ export const readCenter = async (req, res) => {
         const [ rows ] = await pool.query(sql)
 
         if(rows.length <= 0){
-            return res.status(404).json({ messaje: 'CENTER NOT FOUND' })
+            return res.sendStatus(204)
         }
 
         res.json(rows[0])

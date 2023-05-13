@@ -88,7 +88,7 @@ export const readRegisters = async (req, res) => {
 
     const sessionId = parseInt(req.cookies.sessionId)
 
-    try {            
+    try {           
         let page = parseInt(req.query.page)
         const idCenter = parseInt(req.query.idCenter)
         let pageSize = 10
@@ -177,7 +177,7 @@ export const readRegisters = async (req, res) => {
         }
 
         if(rows.length <= 0){
-            return res.status(400).json({ messaje: 'NO DATA' })
+            return res.sendStatus(204)
         }
 
         res.json({

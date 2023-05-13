@@ -148,7 +148,7 @@ export const readComputers = async (req, res) => {
         `;
 
         const sqlA2 = `
-                SELECT COUNT(cmp.id)
+                SELECT COUNT(cmp.id) as totalCount
                 FROM computers cmp
                 JOIN centers c ON cmp.id_center = c.id
                 WHERE c.id IN (
@@ -201,7 +201,7 @@ export const readComputers = async (req, res) => {
         }
 
         if(rows.length <= 0){
-            return res.status(400).json({ messaje: 'NO DATA' })
+            return res.sendStatus(204)
         }
 
         res.json({
